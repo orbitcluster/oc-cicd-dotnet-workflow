@@ -13,6 +13,9 @@ inputs:
     description: "Path to the test project"
     required: false
     default: "test"
+  sonar-password:
+    description: "SonarQube admin password (pass from secrets)"
+    required: true
 runs:
   using: "composite"
   steps:
@@ -50,3 +53,4 @@ runs:
       uses: orbitcluster/oc-cicd-sonarscan-workflow@fix/sonarscan
       with:
         sonar-source-path: "src"
+        sonar-password: ${{ inputs.sonar-password }}
