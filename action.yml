@@ -1,0 +1,52 @@
+name: "Build and Test"
+description: "Build and Test the .NET application"
+inputs:
+  dotnet-version:
+    description: ".NET SDK version to use"
+    required: false
+    default: "8.0.x"
+  solution-path:
+    description: "Path to the solution or project file"
+    required: false
+    default: "."
+  test-project-path:
+    description: "Path to the test project"
+    required: false
+    default: "test"
+runs:
+  using: "composite"
+  steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Set up .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ inputs.dotnet-version }}
+
+    - name: Restore dependencies
+      shell: bash
+      run: dotnet restore ${{ inputs.solution-path }}
+
+    - name: Build
+      shell: bash
+      run: dotnet build ${{ inputs.solution-path }} --configuration Release --no-restore
+
+    - name: Test
+      shell: bash
+      run: |
+        if [ -d "${{ inputs.test-project-path }}" ]; then
+          dotnet test ${{ inputs.test-project-path }} --configuration Release --no-build --verbosity normal
+        else
+          echo "No test directory found at ${{ inputs.test-project-path }}, skipping tests"
+        fi
+
+    - name: Secrets Check
+      if: github.event_name == 'push' || github.event_name == 'pull_request'
+      uses: orbitcluster/oc-cicd-secretscanner-workflow@v2
+
+    - name: SonarQube Check
+      if: github.event_name == 'push' || github.event_name == 'pull_request'
+      uses: orbitcluster/oc-cicd-sonarscan-workflow@v1
+      with:
+        sonar-source-path: "src"
