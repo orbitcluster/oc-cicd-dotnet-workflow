@@ -52,5 +52,5 @@ runs:
       if: github.event_name == 'push' || github.event_name == 'pull_request'
       uses: orbitcluster/oc-cicd-sonarscan-workflow@fix/sonarscan
       with:
-        sonar-source-path: "src"
+        sonar-source-path: ${{ inputs.solution-path }}
         sonar-password: ${{ inputs.sonar-password }}
