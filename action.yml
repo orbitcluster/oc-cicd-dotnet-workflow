@@ -13,9 +13,6 @@ inputs:
     description: "Path to the test project"
     required: false
     default: "test"
-  sonar-password:
-    description: "SonarQube admin password (pass from secrets)"
-    required: true
 runs:
   using: "composite"
   steps:
@@ -53,5 +50,4 @@ runs:
       uses: orbitcluster/oc-cicd-sonarscan-workflow@feat/initialize_workflow
       with:
         sonar-source-path: ${{ inputs.solution-path }}
-        sonar-password: ${{ inputs.sonar-password }}
         dotnet-build-command: dotnet build ${{ inputs.solution-path }} --configuration Release
