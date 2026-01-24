@@ -54,4 +54,4 @@ runs:
       with:
         sonar-source-path: ${{ inputs.solution-path }}
         sonar-password: ${{ inputs.sonar-password }}
-        dotnet-build-command: dotnet build ${{ inputs.solution-path }} --configuration Release --no-restore
+        dotnet-build-command: dotnet build ${{ inputs.solution-path }} --configuration Release
