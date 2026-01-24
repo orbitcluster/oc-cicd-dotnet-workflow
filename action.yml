@@ -47,7 +47,7 @@ runs:
 
     - name: SonarQube Check
       if: github.event_name == 'push' || github.event_name == 'pull_request'
-      uses: orbitcluster/oc-cicd-sonarscan-workflow@feat/initialize_workflow
+      uses: orbitcluster/oc-cicd-sonarscan-workflow@v1
       with:
         sonar-source-path: ${{ inputs.solution-path }}
         dotnet-build-command: dotnet build ${{ inputs.solution-path }} --configuration Release
