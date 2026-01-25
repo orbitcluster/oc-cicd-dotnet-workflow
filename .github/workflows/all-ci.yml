@@ -87,8 +87,8 @@ jobs:
         uses: orbitcluster/oc-cicd-sast-workflow@v1
         with:
           language: csharp
-          build-command: dotnet build ${{ inputs.solution-path }} --configuration Release
-          build-mode: manual
+          # build-command: dotnet build ${{ inputs.solution-path }} --configuration Release
+          # build-mode: manual
 
   docker-build:
     name: Docker Build
