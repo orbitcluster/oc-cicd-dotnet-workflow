@@ -69,3 +69,40 @@ jobs:
         with:
           sonar-source-path: ${{ inputs.sonar-source-path }}
           dotnet-build-command: dotnet build ${{ inputs.solution-path }} --configuration Release
+
+  sast-scan:
+    name: SAST Scan
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' || github.event_name == 'pull_request'
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v6
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ inputs.dotnet-version }}
+
+      - name: SAST Scan
+        uses: orbitcluster/oc-cicd-sast-workflow@v1
+        with:
+          language: csharp
+          build-command: dotnet build ${{ inputs.solution-path }} --configuration Release
+          build-mode: manual
+
+  docker-build:
+    name: Docker Build
+    runs-on: ubuntu-latest
+    needs: [secrets-check, sonarqube-check, sast-scan]
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v6
+
+      - name: Docker Build and Push
+        uses: orbitcluster/oc-cicd-docker-build-workflow@v1
+        with:
+          docker-build-path: .
+          image-name: ${{ inputs.app-name }}
+          appid: ${{ inputs.appid }}
+          orgid: ${{ inputs.orgid }}
+          buid: ${{ inputs.buid }}
