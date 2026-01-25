@@ -51,3 +51,18 @@ runs:
       with:
         sonar-source-path: ${{ inputs.solution-path }}
         dotnet-build-command: dotnet build ${{ inputs.solution-path }} --configuration Release
+
+    - name: SAST Scan
+      if: github.event_name == 'push' || github.event_name == 'pull_request'
+      uses: orbitcluster/oc-cicd-sast-workflow@v1
+      with:
+        language: csharp
+
+    - name: Docker Build and Push
+      uses: orbitcluster/oc-cicd-docker-build-workflow@v1
+      with:
+        docker-build-path: .
+        image-name: ${{ inputs.app-name }}
+        appid: ${{ inputs.appid }}
+        orgid: ${{ inputs.orgid }}
+        buid: ${{ inputs.buid }}
