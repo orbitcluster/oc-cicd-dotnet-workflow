@@ -1,0 +1,71 @@
+name: App CI/CD
+
+on:
+  workflow_call:
+    inputs:
+      app-name:
+        description: "Name of the image/app"
+        required: false
+        default: ${{ github.repository }}
+        type: string
+      appid:
+        description: "Application ID"
+        required: false
+        default: "0"
+        type: string
+      orgid:
+        description: "Organization ID"
+        required: false
+        default: "0"
+        type: string
+      buid:
+        description: "Business Unit ID"
+        required: false
+        default: "0"
+        type: string
+      test-directory:
+        description: "Directory containing tests"
+        required: false
+        default: "test"
+        type: string
+      sonar-source-path:
+        description: "Path to the source code for SonarQube scan"
+        required: false
+        default: "src"
+        type: string
+      dotnet-version:
+        description: ".NET SDK version to use"
+        required: false
+        default: "8.0.x"
+        type: string
+      solution-path:
+        description: "Path to the solution or project file"
+        required: false
+        default: "."
+        type: string
+
+jobs:
+  secrets-check:
+    name: Secrets Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+
+      - name: Secrets Check
+        if: github.event_name == 'push' || github.event_name == 'pull_request'
+        uses: orbitcluster/oc-cicd-secretscanner-workflow@v2
+
+  sonarqube-check:
+    name: SonarQube Check
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' || github.event_name == 'pull_request'
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v6
+
+      - name: SonarQube Check
+        uses: orbitcluster/oc-cicd-sonarscan-workflow@v1
+        with:
+          sonar-source-path: ${{ inputs.sonar-source-path }}
+          dotnet-build-command: dotnet build ${{ inputs.solution-path }} --configuration Release
