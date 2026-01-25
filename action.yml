@@ -57,8 +57,6 @@ runs:
       uses: orbitcluster/oc-cicd-sast-workflow@v1
       with:
         language: csharp
-        # build-command: dotnet build ${{ inputs.solution-path }} --configuration Release
-        # build-mode: manual
 
     - name: Docker Build and Push
       uses: orbitcluster/oc-cicd-docker-build-workflow@v1
