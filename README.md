@@ -1,20 +1,75 @@
 # OC CICD .NET Workflow
 
-This is a reusable composite GitHub Action designed to streamline the build, test, and security scanning process for .NET applications. It encapsulates common CI/CD steps into a single, easy-to-use action.
+This repository provides reusable CI/CD components designed to streamline the build, test, security scanning, and deployment preparation for .NET applications.
 
-## Description
+It offers two primary ways to consume these features:
 
-The "Build and Test" action performs the following operations:
+1.  **Composite Action (`action.yml`)**: A focused action for building, testing, and performing basic checks.
+2.  **Reusable Workflow (`all-ci.yml`)**: A comprehensive CI pipeline that orchestrates multiple jobs including advanced security scans and Docker builds.
+
+---
+
+## 1. Reusable Workflow (`all-ci.yml`)
+
+The reusable workflow is a complete CI pipeline that runs on `ubuntu-latest`. It orchestrates the following parallel and sequential jobs:
+
+- **Secrets Check**: Scans for hardcoded secrets.
+- **SonarQube Check**: Performs code quality and security analysis.
+- **SAST Scan**: Runs Static Application Security Testing for C#.
+- **Docker Build**: Builds and pushes a Docker image (runs after successful checks).
+
+### Inputs
+
+| Input               | Description                                | Required | Default                    | Type     |
+| :------------------ | :----------------------------------------- | :------- | :------------------------- | :------- |
+| `app-name`          | Name of the image/app                      | `false`  | `${{ github.repository }}` | `string` |
+| `appid`             | Application ID                             | `false`  | `"0"`                      | `string` |
+| `orgid`             | Organization ID                            | `false`  | `"0"`                      | `string` |
+| `buid`              | Business Unit ID                           | `false`  | `"0"`                      | `string` |
+| `test-directory`    | Directory containing tests                 | `false`  | `"test"`                   | `string` |
+| `sonar-source-path` | Path to the source code for SonarQube scan | `false`  | `"src"`                    | `string` |
+| `dotnet-version`    | .NET SDK version to use                    | `false`  | `"8.0.x"`                  | `string` |
+| `solution-path`     | Path to the solution or project file       | `false`  | `.`                        | `string` |
+
+### Usage
+
+To use this workflow in your repository, create a workflow file (e.g., `.github/workflows/ci.yml`) and reference it:
+
+```yaml
+name: CI Pipeline
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  ci:
+    name: Run CI Pipeline
+    uses: orbitcluster/oc-cicd-dotnet-workflow/.github/workflows/all-ci.yml@v1
+    with:
+      app-name: "my-dotnet-app"
+      dotnet-version: "8.0.x"
+      solution-path: "src"
+    secrets: inherit
+```
+
+---
+
+## 2. Composite Action (`action.yml`)
+
+The "Build and Test" composite action performs the following operations in a single job step:
 
 1.  **Checkout**: Checks out the repository code.
-2.  **Setup .NET**: Sets up the .NET SDK environment using the specified version (default: 8.0.x).
-3.  **Restore Dependencies**: Runs `dotnet restore` to restore NuGet packages.
+2.  **Setup .NET**: Sets up the .NET SDK environment.
+3.  **Restore Dependencies**: Runs `dotnet restore`.
 4.  **Build**: Builds the solution in Release configuration.
-5.  **Test**: Runs tests using `dotnet test` (skipped if test directory doesn't exist).
-6.  **Secrets Check**: Scans the codebase for hardcoded secrets using `orbitcluster/oc-cicd-secretscanner-workflow` (Runs on `push` and `pull_request`).
-7.  **SonarQube Check**: Performs a SonarQube code quality analysis using `orbitcluster/oc-cicd-sonarscan-workflow` (Runs on `push` and `pull_request`).
+5.  **Test**: Runs `dotnet test` (skipped if the test directory doesn't exist).
+6.  **Secrets Check**: Basic secret scanning.
+7.  **SonarQube Check**: Basic code quality analysis.
 
-## Inputs
+### Inputs
 
 | Input               | Description                          | Required | Default |
 | :------------------ | :----------------------------------- | :------- | :------ |
@@ -22,9 +77,9 @@ The "Build and Test" action performs the following operations:
 | `solution-path`     | Path to the solution or project file | `false`  | `.`     |
 | `test-project-path` | Path to the test project             | `false`  | `test`  |
 
-## Usage
+### Usage
 
-To use this action in your workflow, map the `uses` keyword to the location of this action.
+To use this action as a step in your own workflow:
 
 ```yaml
 jobs:
@@ -34,35 +89,6 @@ jobs:
       - uses: orbitcluster/oc-cicd-dotnet-workflow@v1
         with:
           dotnet-version: "8.0.x"
-          solution-path: "src/webApp"
-          test-project-path: "test"
+          solution-path: "src/MyProject"
+          test-project-path: "tests/MyProject.Tests"
 ```
-
-## Workflow Steps Details
-
-### 1. Checkout
-
-Uses `actions/checkout@v4` to fetch the source code.
-
-### 2. Set up .NET
-
-Uses `actions/setup-dotnet@v4`.
-
-- **Version**: Configurable via `dotnet-version` input (default: 8.0.x).
-
-### 3. Restore Dependencies
-
-Executes `dotnet restore` on the specified solution path.
-
-### 4. Build
-
-Executes `dotnet build` in Release configuration with `--no-restore` flag.
-
-### 5. Test
-
-Executes `dotnet test` if the test directory exists, otherwise skips.
-
-### 6. Security & Quality Checks
-
-- **Secrets Check**: Triggers on `push` and `pull_request` events to ensure no sensitive data is committed.
-- **SonarQube Check**: Triggers on `push` and `pull_request` events to analyze code quality in the `src` directory.
