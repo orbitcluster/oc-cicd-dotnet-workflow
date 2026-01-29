@@ -40,6 +40,12 @@ inputs:
 runs:
   using: "composite"
   steps:
+    - name: Debug Inputs
+      shell: bash
+      run: |
+        echo "DEBUG: sonar-source-path=[${{ inputs.sonar-source-path }}]"
+        echo "DEBUG: solution-path=[${{ inputs.solution-path }}]"
+
     - name: Checkout
       uses: actions/checkout@v4
 
