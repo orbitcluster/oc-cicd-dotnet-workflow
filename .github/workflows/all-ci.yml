@@ -43,7 +43,10 @@ on:
         required: false
         default: "."
         type: string
-
+    secrets:
+      role-to-assume:
+        description: "Role to assume"
+        required: true
 jobs:
   secrets-check:
     name: Secrets Check
