@@ -105,7 +105,7 @@ jobs:
     outputs:
       version: ${{ steps.semver.outputs.release-version }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Semantic Version
         id: semver
         uses: orbitcluster/oc-cicd-release-workflow@v1
@@ -119,7 +119,7 @@ jobs:
     needs: [secrets-check, sonarqube-check, sast-scan, semantic-release]
     steps:
       - name: Checkout Repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
