@@ -13,6 +13,10 @@ inputs:
     description: "Path to the test project"
     required: false
     default: "test"
+  sonar-source-path:
+    description: "Path to the source code for SonarQube scan"
+    required: false
+    default: "src"
   app-name:
     description: "Name of the image"
     required: false
@@ -78,7 +82,7 @@ runs:
       if: github.event_name == 'push' || github.event_name == 'pull_request'
       uses: orbitcluster/oc-cicd-sonarscan-workflow@v1
       with:
-        sonar-source-path: ${{ inputs.solution-path }}
+        sonar-source-path: ${{ inputs.sonar-source-path }}
         dotnet-build-command: dotnet build ${{ inputs.solution-path }} --configuration Release
 
     - name: SAST Scan
