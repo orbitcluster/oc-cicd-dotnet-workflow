@@ -13,11 +13,42 @@ inputs:
     description: "Path to the test project"
     required: false
     default: "test"
+  sonar-source-path:
+    description: "Path to the source code for SonarQube scan"
+    required: false
+    default: "src"
+  app-name:
+    description: "Name of the image"
+    required: false
+    default: ${{ github.repository }}
+  appid:
+    description: "Application ID"
+    required: false
+    default: "0"
+  orgid:
+    description: "Organization ID"
+    required: false
+    default: "0"
+  buid:
+    description: "Business Unit ID"
+    required: false
+    default: "0"
+  role-to-assume:
+    description: "Role to assume"
+    required: true
+
 runs:
   using: "composite"
   steps:
     - name: Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
+
+    - name: Semantic Release
+      id: semver
+      uses: orbitcluster/oc-cicd-release-workflow@v1
+      with:
+        dry-run: ${{ github.ref_name != 'main' }}
+        github-token: ${{ github.token }}
 
     - name: Set up .NET
       uses: actions/setup-dotnet@v4
@@ -44,12 +75,14 @@ runs:
     - name: Secrets Check
       if: github.event_name == 'push' || github.event_name == 'pull_request'
       uses: orbitcluster/oc-cicd-secretscanner-workflow@v2
+      with:
+        github-token: ${{ github.token }}
 
     - name: SonarQube Check
       if: github.event_name == 'push' || github.event_name == 'pull_request'
       uses: orbitcluster/oc-cicd-sonarscan-workflow@v1
       with:
-        sonar-source-path: ${{ inputs.solution-path }}
+        sonar-source-path: ${{ inputs.sonar-source-path }}
         dotnet-build-command: dotnet build ${{ inputs.solution-path }} --configuration Release
 
     - name: SAST Scan
@@ -58,11 +91,27 @@ runs:
       with:
         language: csharp
 
-    - name: Docker Build and Push
+    - name: Docker Build
+      id: docker-build
       uses: orbitcluster/oc-cicd-docker-build-workflow@v1
       with:
         docker-build-path: .
         image-name: ${{ inputs.app-name }}
+        tag-override: ${{ github.ref_name == 'main' && steps.semver.outputs.release-version || '' }}
         appid: ${{ inputs.appid }}
         orgid: ${{ inputs.orgid }}
         buid: ${{ inputs.buid }}
+
+    - name: Docker Push
+      id: docker-push
+      uses: orbitcluster/oc-cicd-docker-push-workflow@v1
+      with:
+        image_type: docker
+        image-name: ${{ inputs.app-name }}
+        tag: ${{ steps.docker-build.outputs.docker-tag }}
+        appid: ${{ inputs.appid }}
+        orgid: ${{ inputs.orgid }}
+        buid: ${{ inputs.buid }}
+        role-to-assume: ${{ inputs.role-to-assume }}
+        action_type: ${{ github.event_name == 'pull_request' && 'cleanup' || 'push' }}
+        branch-name: ${{ steps.docker-build.outputs.safe-branch }}
