@@ -125,7 +125,7 @@ jobs:
 
       - name: Docker Build
         id: docker-build
-        uses: orbitcluster/oc-cicd-docker-build-workflow@feat/update_tag_logic
+        uses: orbitcluster/oc-cicd-docker-build-workflow@v1
         with:
           docker-build-path: .
           image-name: ${{ inputs.app-name }}
@@ -136,7 +136,7 @@ jobs:
 
       - name: Docker Push / Cleanup
         id: docker-push
-        uses: orbitcluster/oc-cicd-docker-push-workflow@feat/add_helm_push
+        uses: orbitcluster/oc-cicd-docker-push-workflow@v1
         with:
           image_type: docker
           image-name: ${{ inputs.app-name }}
