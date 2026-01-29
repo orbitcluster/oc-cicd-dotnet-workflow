@@ -13,7 +13,6 @@ inputs:
     description: "Path to the test project"
     required: false
     default: "test"
-runs:
   app-name:
     description: "Name of the image"
     required: false
